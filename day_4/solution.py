@@ -77,34 +77,27 @@ def part1(input_text):
   return movable_count
 
 
-# def part2(input_text):
-#   bank_list = parse_input(input_text)
-#   total_output_joltage = 0
+def part2(input_text):
+  forklift_map = parse_input_2d(input_text)
+  filled_out_map = copy.deepcopy(forklift_map);
+  movable_count_total = 0
+  movable_count = 1
 
-#   for bank in bank_list:
-#     running_string = ''
-#     largest_number_index = 0
-#     largest_number = 0
-#     count_up = 0
+  while movable_count > 0:
+    movable_count = 0
+    for row_index, row_val in enumerate(forklift_map):
+      for col_index, col_val in enumerate(row_val):
+        # check if @; else continue
+        if col_val != '@':
+          continue
 
-#     for count in reversed(range(12)):
-#       remaining_count = count + 1
-#       largest_number, largest_number_index = loop_over_string(bank, remaining_count, count_up)
-#       running_string = running_string + str(largest_number)
-#       count_up = largest_number_index + count_up + 1
-#     total_output_joltage += int(running_string)
+        # check neighbors for .
+        if checkNeighbors(forklift_map, row_index, col_index):
+          movable_count += 1
+          filled_out_map[row_index][col_index] = "X"
+    
+    movable_count_total += movable_count
+    forklift_map = copy.deepcopy(filled_out_map);
 
-#   return total_output_joltage
 
-
-# def loop_over_string(bank, remaining_count, index_plus_count):
-#   largest_number = 0
-#   largest_number_index = 0
-#   bank_substring = bank[index_plus_count:]
-
-#   for index, jolt in enumerate(bank_substring):
-#     jolt_num = int(jolt)
-#     if jolt_num > largest_number and index <= len(bank_substring) - remaining_count:
-#       largest_number = jolt_num
-#       largest_number_index = index
-#   return largest_number, largest_number_index
+  return movable_count_total
