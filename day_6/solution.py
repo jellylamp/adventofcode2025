@@ -42,10 +42,18 @@ def part1(input_text):
   
   return grand_total_sum
 
+def parse_input_2d_part2(input_text):
+  array2D = []
+  with open(input_text, 'r') as f:
+    for line in f.read().splitlines():
+      split_list = line.split(' ')
+      print(split_list)
+      array2D.append(split_list)
+  return array2D
 
 # jesus christ gnome math
 def part2(input_text):
-  homework_map = parse_input_2d(input_text)
+  homework_map = parse_input_2d_part2(input_text)
   grand_total_sum = 0
   # transpose so we can loop through columns then rows
   transposed_homework_map = zip(*homework_map)
