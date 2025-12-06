@@ -58,60 +58,34 @@ def part2(input_text):
        'range': str(ingredient_range),
        'start': starting_range,
        'end': ending_range,
-       'count': ending_range - starting_range + 1,
-       'checked': False,
-       'overlap_count': 0
+       'count': ending_range - starting_range + 1
     })
-    fresh_count += ending_range - starting_range + 1
-
-  print("fresh count before removals", fresh_count)
-
+  
+  # Sort ranges by start position
+  fresh_range_arr.sort(key=lambda x: x['start'])
+  
+  # Merge overlapping ranges
+  merged_ranges = []
   for current_ingredient in fresh_range_arr:
-     for ingredient_to_check in fresh_range_arr:
-      # skip yourself!
-      if ingredient_to_check['index'] == current_ingredient['index']:
-        current_ingredient['checked'] = True
-        continue
-
-      # we are comparing everything thats been compared to now
-      if ingredient_to_check['checked'] == True:
-         current_ingredient['checked'] = True
-         continue
-
-      # Determine if ranges overlap
-      if is_overlapping(current_ingredient['start'], current_ingredient['end'], ingredient_to_check['start'], ingredient_to_check['end']):
-        # if they do by how much?
-        print(f"range {current_ingredient['range']} overlaps {ingredient_to_check['range']}")
-        num_to_remove = count_overlapped(current_ingredient['start'], current_ingredient['end'], ingredient_to_check['start'], ingredient_to_check['end'])
-        
-        # update the overlap count for the ingredient to check
-        current_ingredient['overlap_count'] = current_ingredient['overlap_count'] + num_to_remove
-
-        # mark as checked so we dont double compare
-        current_ingredient['checked'] = True
-
-  for current_ingredient in fresh_range_arr:
-    print('overlap count', current_ingredient['overlap_count'])
-    if (current_ingredient['overlap_count'] > current_ingredient['count']):
-      fresh_count = fresh_count - current_ingredient['count']
+    # Create new range only if no overlap (start > last end)
+    if not merged_ranges or current_ingredient['start'] > merged_ranges[-1]['end']:
+      merged_ranges.append({
+        'start': current_ingredient['start'],
+        'end': current_ingredient['end']
+      })
     else:
-      fresh_count = fresh_count - current_ingredient['overlap_count']
-
-    # print("removing overlapping ", num_to_remove)
-    # fresh_count = fresh_count - num_to_remove
-
-
+      # Ranges overlap, so merge by extending the end if needed
+      merged_ranges[-1]['end'] = max(merged_ranges[-1]['end'], current_ingredient['end'])
+  
+  # Count total numbers in all merged ranges
+  for merged_range in merged_ranges:
+    fresh_count += merged_range['end'] - merged_range['start'] + 1
+  
   return fresh_count
 
 def is_overlapping(x1,x2,y1,y2):
     return max(x1,y1) <= min(x2,y2)
 
-# subtract from fresh count the overlap
-# think about it
-# 10-14 = 5 count
-# 12-18 = 7 count
-# 12 count total but double counting; want 9
-# 14-12 = 2 + 1 = 3
 def count_overlapped(x1,x2,y1,y2):
    highest_start = max(x1,y1)
    lowest_end = min(x2,y2)

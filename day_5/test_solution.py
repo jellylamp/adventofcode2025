@@ -17,17 +17,18 @@ def test_part1_input():
     result = part1(input_text)
     assert result == 885
 
+def test_example_small_part2():
+    input_text = Path("example-small.txt")
+    result = part2(input_text)
+    assert result == 5
 
 def test_example_part2():
     input_text = Path("example.txt")
     result = part2(input_text)
     assert result == 17
 
-# def test_part2_input():
-#     input_text = Path("input.txt")
+def test_part2_input():
+    input_text = Path("input.txt")
 
-#     result = part2(input_text)
-#     assert result == 12
-#     # 346430794751279 - too low
-#     # just wrong 347083838819027
-#     # just wrong 347970612001132
+    result = part2(input_text)
+    assert result == 348115621205535
