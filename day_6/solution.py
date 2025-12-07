@@ -1,4 +1,6 @@
 import copy
+import math
+from itertools import zip_longest
 
 def parse_input_2d(input_text):
   array2D = []
@@ -45,118 +47,80 @@ def parse_input_2d_part2(input_text):
   array2D = []
   with open(input_text, 'r') as f:
     for line in f.read().splitlines():
-      split_list = line.split(' ')
-      print(split_list)
-      array2D.append(split_list)
+      array2D.append(line)
   return array2D
 
 # jesus christ gnome math
-def part2(input_text):
+def part2(input_text, row_count):
   homework_map = parse_input_2d_part2(input_text)
   grand_total_sum = 0
   # transpose so we can loop through columns then rows
-  transposed_homework_map = [list(row) for row in zip(*homework_map)]
-  fixed_padding_map = fix_map_padding(transposed_homework_map)
-  print_map(fixed_padding_map)
+  transposed_homework_map = [list(col) for col in zip_longest(*homework_map, fillvalue=" ")]
+  # print_map(transposed_homework_map)
 
-  print ("-----------------------------------------")
-  for col_index, col_val in enumerate(fixed_padding_map):
-    # grab the last item so we know the operator
-    operator = col_val[len(col_val) - 1]
-    math_answer = 0
-    highest_val_char_count = 0
-    # numbers are max 4 digits looks like
-    answer_array = [0, 0, 0, 0]
+  all_zero_column_indexes = []
+  operations_order = []
 
-    # do a quick loop to determine max character count in row? aka 4 character num like 1000 determines what we add to
-    for row_index, row_val in enumerate(col_val):
-      char_count = len(row_val) - 1
-      if char_count > highest_val_char_count:
-        highest_val_char_count = char_count
+  # do a quick loop and find the index of when all rows/columns have zeros.
+  for col_idx, col in enumerate(transposed_homework_map):
+    empty_space_count = 0
+    for row in col:
+      if row == ' ':
+        empty_space_count += 1
+        if empty_space_count == row_count + 1:
+          # we found a boundary! put the column index in the list
+          all_zero_column_indexes.append(col_idx)
+      if row == '*' or row == '+':
+        operations_order.append(row)
 
-    # now loop over this with this knowledge in hand
-    for row_index, row_val in enumerate(col_val):
-      # now that our numbers match we can add / multiply them accordingly
-      for char_index, character in enumerate(row_val):
-        if character == '@' or character == '*' or character == '+' or character == ' ':
-          # skip this character
-          continue
-    
-        print("answer array", answer_array)
+  # add the last column + 1to all zero row indexes
+  all_zero_column_indexes.append(len(transposed_homework_map))
+  # print(all_zero_column_indexes)
 
-        if row_index == 0:
-          print(f"first index, answer array index {char_index} becomes {character}")
-          answer_array[char_index] = int(character)
-          continue
+  # loop through for real
+  number_boundary = all_zero_column_indexes.pop(0)
+  running_numbers_array = []
+  operator = operations_order.pop(0)
 
-        math_answer = answer_array[char_index]
-        if operator == '*':
-          print(f"multiply {math_answer} with {character} = {math_answer * int(character)}")
-          math_answer = math_answer * int(character)
-        else:
-          print(f"add  {math_answer} with {character} = {math_answer + int(character)}")
-          math_answer = math_answer + int(character)
-        answer_array[char_index] = math_answer
+  for col_idx, col in enumerate(transposed_homework_map):
+    running_number = ''
+    if col_idx == number_boundary and col_idx != len(transposed_homework_map):
+      running_numbers_array, grand_total_sum, number_boundary, operator = reset_and_sum(running_numbers_array, operator, grand_total_sum, all_zero_column_indexes, operations_order, False)
+      continue
 
-    total_sum = sum(answer_array)
-    print(f"total sum = {total_sum}")
-    grand_total_sum = grand_total_sum + total_sum
-    print(f"grand total sum = {grand_total_sum}")
-  
+    for row_idx, row in enumerate(col):
+      # don't care about operations row
+      if row_idx == row_count:
+        # this is the last row, add to the running number and move on
+        running_numbers_array.append(running_number)
+        continue
+      
+      # add to running number
+      # print(row)
+      running_number = running_number + row
+
+  # add one last time
+  running_numbers_array, grand_total_sum, number_boundary, operator = reset_and_sum(running_numbers_array, operator, grand_total_sum, all_zero_column_indexes, operations_order, True)
+
   return grand_total_sum
 
-def fix_map_padding(transposed_homework_map):
-  # the original 2d parser filtered out empties so will have the correct cell counts
-  fixed_map = copy.deepcopy(transposed_homework_map)
+def reset_and_sum(running_numbers_array, operator, grand_total_sum, all_zero_column_indexes, operations_order, dont_pop):
+  # print(running_numbers_array)
+  int_running_numbers_array = [int(numeric_string.replace(" ", "")) for numeric_string in running_numbers_array]
+  # do the math!
+  if operator == '+':
+    total = sum(int_running_numbers_array)
+  else:
+    total = math.prod(int_running_numbers_array)
+  grand_total_sum += total
+  print("running numbers array", int_running_numbers_array)
+  print(f"operator: {operator}; total: {total}")
 
-  # make this map have all empty cells
-  for col_index, col_val in enumerate(transposed_homework_map):
-    for row_index, row_val in enumerate(col_val):
-      fixed_map[col_index][row_index] = ''
-
-
-  for col_index, col_val in enumerate(transposed_homework_map):
-    highest_val_char_count = 0
-
-    # do a quick loop to determine max character count in row? aka 4 character num like 1000 determines what we add to
-    for row_index, row_val in enumerate(col_val):
-      char_count = len(row_val) - 1
-      if char_count > highest_val_char_count:
-        highest_val_char_count = char_count
-
-    empty_character_count = 0
-    # now loop over this with this knowledge in hand and fix padding
-    for row_index, row_val in enumerate(col_val):
-      # if character is a space, we know we need to add it to an item coming in the future
-      if (row_val == ''):
-        print(f"row val is empty, empty char count is {empty_character_count}")
-        empty_character_count += 1
-        continue
-
-      value_char_count = len(row_val) - 1
-      char_difference = highest_val_char_count - value_char_count
-      print(f"value char count: {value_char_count}; char_difference: {char_difference}; row_value: {row_val}")
-      
-      if (char_difference != 0):
-        # pad our number with trash to ignore so that the counts match
-        if (empty_character_count > 0):
-          # pad it to the front
-          padded_number = '@' * char_difference + row_val
-          empty_character_count = empty_character_count - char_difference
-          print(f"char count isn't empty, padding the front: {padded_number}")
-        else:
-          # pad it to the back
-          padded_number = row_val + '@' * char_difference
-          print(f"char count empty, padding the back: {padded_number}")
-        fixed_map[col_index][row_index] = padded_number
-      else:
-        fixed_map[col_index][row_index] = row_val
-
-  # remove all remaining empty cells
-  fixed_map_no_emptys = copy.deepcopy(fixed_map)
-  for row_index, row in enumerate(fixed_map):
-    fixed_row = list(filter(None, row))
-    fixed_map_no_emptys[row_index] = fixed_row
-
-  return fixed_map_no_emptys
-      
+  # reset!
+  # print(f"reset! all_zero_column_indexes before pop {all_zero_column_indexes}; all operators before pop {operations_order}")
+  number_boundary = 0
+  if dont_pop == False:
+    number_boundary = all_zero_column_indexes.pop(0)
+    operator = operations_order.pop()
+    running_numbers_array = []
+  return running_numbers_array, grand_total_sum, number_boundary, operator
