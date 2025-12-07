@@ -121,6 +121,6 @@ def reset_and_sum(running_numbers_array, operator, grand_total_sum, all_zero_col
   number_boundary = 0
   if dont_pop == False:
     number_boundary = all_zero_column_indexes.pop(0)
-    operator = operations_order.pop()
+    operator = operations_order.pop(0)
     running_numbers_array = []
   return running_numbers_array, grand_total_sum, number_boundary, operator
