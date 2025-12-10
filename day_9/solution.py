@@ -112,11 +112,9 @@ def part2(input_text):
         if row[j] == '.':
           row[j] = 'G'
 
-
-  print_map(grid)
-
   # ok find the area now!
   area_list = []
+  largest_area = 0
 
   # calculate area between all coords
   for i, coord1 in enumerate(red_tile_list):
@@ -127,14 +125,19 @@ def part2(input_text):
       
       # check if other corners are in the grid
       if (are_other_corners_in_grid):
-        if (is_rectange_filled(grid, coord1, coord2)):
-          # get the area between the pairs
-          area_list.append((area_between_two_points(coord1, coord2), coord1, coord2))
+        area = area_between_two_points(coord1, coord2), coord1, coord2
+
+        # only bother with rectangles that would be larger than what we have
+        if area > largest_area:
+          if (is_rectange_filled(grid, coord1, coord2)):
+            # get the area between the pairs
+            area_list.append(area)
+            largest_area = area
 
   # find the largest area
   area_list.sort(key=lambda x: x[0], reverse=True)
 
-  return area_list[0][0]
+  return largest_area
 
 
 def area_between_two_points(tile1, tile2):
